@@ -17,7 +17,7 @@
 
 ### 方式一：通过 SkillHub 安装（推荐）
 
-在 [SkillHub](https://skillhub.cloud.tencent.com) 搜索 "1TodoS" 或 "kairusi-todos"，下载安装即可。
+在 [SkillHub](https://skillhub.cloud.tencent.com) 搜索 "1TodoS" 或 "kairusi-1todos"，下载安装即可。
 
 ### 方式二：手动安装
 
