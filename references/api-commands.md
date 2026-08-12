@@ -60,7 +60,7 @@ Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/project/get_list_pc_m
 
 ```bash
 T=$(cat ~/.config/1todos-skill/token 2>/dev/null)
-# UUID 替换为目标清单的 project_uuid
+# UUID 替换为目标清单的 uuid（注意：参数名是 uuid，不是 project_uuid）
 # TYPE: 0=未完成, 1=已完成
 curl -s -X POST "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" \
   -H "Content-Type: application/json" \
@@ -70,7 +70,7 @@ curl -s -X POST "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" \
   -H "PRODUCT: todo_pc" \
   -H "APPVERSION: 2.0.0" \
   -H "SESSIONID: $T" \
-  -d '{"project_uuid":"UUID","type":"TYPE","page":1}'
+  -d '{"uuid":"UUID","type":"TYPE","page":1}'
 ```
 
 ### PowerShell (Windows)
@@ -78,16 +78,20 @@ curl -s -X POST "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" \
 ```powershell
 $t = (Get-Content "$HOME\.config\1todos-skill\token" -Raw -EA SilentlyContinue).Trim()
 $headers = @{ "Content-Type"="application/json"; "DEVICEID"="skill-client-001"; "DEVICEIDTYPE"="android"; "DEVICELANGUAGE"="CN"; "PRODUCT"="todo_pc"; "APPVERSION"="2.0.0"; "SESSIONID"=$t }
-$body = '{"project_uuid":"UUID","type":"TYPE","page":1}'
+$body = '{"uuid":"UUID","type":"TYPE","page":1}'
 Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" -Method POST -Headers $headers -Body $body
 ```
 
 ### 响应处理
 
-返回 `data.list` 数组，每项包含：
-- `todo_id` — 任务ID
+返回 `data` 对象，包含两个数组：
+- `data.unfinish` — 未完成任务数组
+- `data.finished` — 已完成任务数组
+
+每个任务包含：
+- `id` — 任务ID（用于完成/删除操作）
 - `title` — 任务标题
-- `end_time` — 截止时间（时间戳，0表示无截止日期）
+- `belong_date` — 截止日期（如 "2026-08-15"，空字符串表示无截止日期）
 - `is_finish` — 是否完成（0/1）
 - `labels` — 标签数组
 
@@ -95,7 +99,36 @@ Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/todo/get_list_by_uuid
 
 ## 获取收件箱
 
-收件箱就是用户的默认项目。先调用获取项目/清单列表，找到类型为收件箱的项目（通常是列表中第一个），然后用其 `project_uuid` 调用获取任务列表接口。
+**重要：** 收件箱的 UUID 是在**登录时**返回的 `data.project_uuid` 字段，不在清单列表接口中。
+
+获取收件箱任务的方法：用登录返回的 `project_uuid` 作为 `uuid` 参数调用获取任务列表接口。
+
+如果用户已授权但不知道收件箱UUID，可以通过 MCP Server 的 `/token` 接口登录时获取，或者在 SKILL 授权流程中同时保存收件箱UUID。
+
+### 保存收件箱UUID
+
+授权时，除了保存 token，还应保存收件箱UUID：
+
+**macOS / Linux：**
+```bash
+printf '%s' 'INBOX_UUID' > ~/.config/1todos-skill/inbox_uuid
+```
+
+### 获取收件箱任务
+
+```bash
+T=$(cat ~/.config/1todos-skill/token 2>/dev/null)
+INBOX=$(cat ~/.config/1todos-skill/inbox_uuid 2>/dev/null)
+curl -s -X POST "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" \
+  -H "Content-Type: application/json" \
+  -H "DEVICEID: skill-client-001" \
+  -H "DEVICEIDTYPE: android" \
+  -H "DEVICELANGUAGE: CN" \
+  -H "PRODUCT: todo_pc" \
+  -H "APPVERSION: 2.0.0" \
+  -H "SESSIONID: $T" \
+  -d "{\"uuid\":\"$INBOX\",\"type\":\"0\",\"page\":1}"
+```
 
 ---
 

@@ -72,21 +72,38 @@ Token 为空 → 停止执行，提示用户说"授权1TodoS"。
    > 请访问 https://mcptodo.kairusi.com/authorize 完成授权。
    > 输入手机号和密码登录后，页面会显示一段配置信息，其中 Authorization 字段中 Bearer 后面的字符串就是您的 Token，请复制发给我。
 
-2. 收到 Token 后，按平台执行：
+2. 收到 Token 后，还需要获取收件箱UUID。请要求用户提供收件箱UUID（在授权页面上一起显示），或者通过以下命令获取：
+
+   **macOS / Linux：**
+   ```bash
+   # 登录获取收件箱UUID
+   INBOX_UUID=$(curl -s -X POST "https://todo.kairusi.com/index.php/user/login" \
+     -H "Content-Type: application/json" \
+     -H "DEVICEID: skill-client-001" \
+     -H "DEVICEIDTYPE: android" \
+     -H "DEVICELANGUAGE: CN" \
+     -H "PRODUCT: todo_pc" \
+     -H "APPVERSION: 2.0.0" \
+     -d '{"mobile":"USER_MOBILE","mobile_area":"86","password":"USER_PASSWORD"}' | python3 -c "import json,sys; print(json.load(sys.stdin)['data']['project_uuid'])")
+   ```
+
+3. 保存 Token 和收件箱UUID：
 
    **macOS / Linux：**
 
    ```
    mkdir -p ~/.config/1todos-skill && printf '%s' '<Token>' > ~/.config/1todos-skill/token && chmod 600 ~/.config/1todos-skill/token
+   printf '%s' '<INBOX_UUID>' > ~/.config/1todos-skill/inbox_uuid
    ```
 
    **Windows (PowerShell)：**
 
    ```
    New-Item -ItemType Directory -Force "$HOME\.config\1todos-skill" | Out-Null; Set-Content "$HOME\.config\1todos-skill\token" '<Token>' -NoNewline -Encoding UTF8
+   Set-Content "$HOME\.config\1todos-skill\inbox_uuid" '<INBOX_UUID>' -NoNewline -Encoding UTF8
    ```
 
-3. 告知用户授权成功，展示下方可用场景。
+4. 告知用户授权成功，展示下方可用场景。
 
 ---
 
@@ -120,7 +137,9 @@ Token 为空 → 停止执行，提示用户说"授权1TodoS"。
 
 **触发词：** "收件箱"、"inbox"、"收件箱里有什么"
 
-读取 `references/api-commands.md`，按当前平台执行 **获取收件箱** 部分对应命令。
+**重要：** 收件箱的UUID不在清单列表接口中，而是在登录时返回的 `data.project_uuid` 字段。授权时应同时保存到 `~/.config/1todos-skill/inbox_uuid`。
+
+读取 `references/api-commands.md`，按当前平台执行 **获取收件箱** 部分对应命令。使用 `~/.config/1todos-skill/inbox_uuid` 中保存的UUID作为参数。
 
 ---
 
@@ -144,7 +163,7 @@ Token 为空 → 停止执行，提示用户说"授权1TodoS"。
 
 逻辑：
 * 用户指定清单 → 先执行场景一获取清单列表匹配 `uuid`
-* 未指定清单 → 添加到收件箱（使用登录时返回的 `project_uuid`）
+* 未指定清单 → 添加到收件箱（使用 `~/.config/1todos-skill/inbox_uuid` 中保存的UUID）
 * 用户指定截止日期 → 转换为时间戳
 * 用户指定标签 → 传入 `label_ids`（先通过场景七获取标签列表匹配ID）
 

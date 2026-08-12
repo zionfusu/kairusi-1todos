@@ -27,4 +27,4 @@ curl -s -X POST "https://todo.kairusi.com/index.php/todo/get_list_by_uuid" \
   -H "PRODUCT: todo_pc" \
   -H "APPVERSION: 2.0.0" \
   -H "SESSIONID: $T" \
-  -d "{\"project_uuid\":\"$UUID\",\"type\":\"$TYPE\",\"page\":$PAGE}"
+  -d "{\"uuid\":\"$UUID\",\"type\":\"$TYPE\",\"page\":$PAGE}"
