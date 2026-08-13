@@ -189,11 +189,23 @@ Token 为空 → 停止执行，提示用户说"授权1TodoS"。
 
 ---
 
-## 场景八：删除任务
+## 场景八：标记星标
+
+**触发词：** "星标"、"加星标"、"标记重点"、"取消星标"、"mark"
+
+从用户消息提取任务标题或UUID。如果只有标题，先执行场景四搜索任务获取 `uuid`。
+
+**重要：** 星标必须使用专用的 `todo/mark` 接口，不能通过 `todo/commit` 的 update 模式修改（会返回成功但不生效）。
+
+读取 `references/api-commands.md`，按当前平台执行 **标记星标** 部分对应命令。
+
+---
+
+## 场景九：删除任务
 
 **触发词：** "删除任务"、"移除任务"、"去掉这个任务"
 
-从用户消息提取任务标题或ID。如果只有标题，先执行场景四搜索任务获取 `todo_id` 和 `project_uuid`，让用户确认后再删除。
+从用户消息提取任务标题或ID。如果只有标题，先执行场景四搜索任务获取 `uuid` 和 `project_uuid`，让用户确认后再删除。
 
 读取 `references/api-commands.md`，按当前平台执行 **删除任务** 部分对应命令。
 
@@ -209,6 +221,7 @@ Token 为空 → 停止执行，提示用户说"授权1TodoS"。
 * 搜索任务：`scripts/search-tasks.sh` / `scripts/search-tasks.ps1`
 * 创建任务：`scripts/create-task.sh` / `scripts/create-task.ps1`
 * 完成任务：`scripts/complete-task.sh` / `scripts/complete-task.ps1`
+* 标记星标：`scripts/mark-task.sh` / `scripts/mark-task.ps1`
 * 删除任务：`scripts/delete-task.sh` / `scripts/delete-task.ps1`
 
 ---

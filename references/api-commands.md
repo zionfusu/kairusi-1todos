@@ -202,13 +202,49 @@ Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/todo/commit" -Method 
 
 ---
 
+## 标记星标
+
+**重要：** 星标必须使用专用的 `todo/mark` 接口。不能通过 `todo/commit` 的 update 模式修改星标（会返回成功但不生效）。
+
+### bash (macOS / Linux)
+
+```bash
+T=$(cat ~/.config/1todos-skill/token 2>/dev/null)
+# UUID — 任务UUID
+# IS_MARK: 1=标记星标, 0=取消星标
+curl -s -X POST "https://todo.kairusi.com/index.php/todo/mark" \
+  -H "Content-Type: application/json" \
+  -H "DEVICEID: skill-client-001" \
+  -H "DEVICEIDTYPE: android" \
+  -H "DEVICELANGUAGE: CN" \
+  -H "PRODUCT: todo_pc" \
+  -H "APPVERSION: 2.0.0" \
+  -H "SESSIONID: $T" \
+  -d '{"uuid":"UUID","is_mark":"IS_MARK"}'
+```
+
+### PowerShell (Windows)
+
+```powershell
+$t = (Get-Content "$HOME\.config\1todos-skill\token" -Raw -EA SilentlyContinue).Trim()
+$headers = @{ "Content-Type"="application/json"; "DEVICEID"="skill-client-001"; "DEVICEIDTYPE"="android"; "DEVICELANGUAGE"="CN"; "PRODUCT"="todo_pc"; "APPVERSION"="2.0.0"; "SESSIONID"=$t }
+$body = '{"uuid":"UUID","is_mark":"IS_MARK"}'
+Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/todo/mark" -Method POST -Headers $headers -Body $body
+```
+
+### 响应处理
+
+返回 `res == 200` 表示成功。
+
+---
+
 ## 完成任务
 
 ### bash (macOS / Linux)
 
 ```bash
 T=$(cat ~/.config/1todos-skill/token 2>/dev/null)
-# TODO_ID — 任务ID
+# UUID — 任务UUID。注意：参数名是 uuid，不是 todo_id
 curl -s -X POST "https://todo.kairusi.com/index.php/todo/commit_finish" \
   -H "Content-Type: application/json" \
   -H "DEVICEID: skill-client-001" \
@@ -217,7 +253,7 @@ curl -s -X POST "https://todo.kairusi.com/index.php/todo/commit_finish" \
   -H "PRODUCT: todo_pc" \
   -H "APPVERSION: 2.0.0" \
   -H "SESSIONID: $T" \
-  -d '{"todo_id":"TODO_ID","is_finish":1}'
+  -d '{"uuid":"UUID","is_finish":"1"}'
 ```
 
 ### PowerShell (Windows)
@@ -225,13 +261,13 @@ curl -s -X POST "https://todo.kairusi.com/index.php/todo/commit_finish" \
 ```powershell
 $t = (Get-Content "$HOME\.config\1todos-skill\token" -Raw -EA SilentlyContinue).Trim()
 $headers = @{ "Content-Type"="application/json"; "DEVICEID"="skill-client-001"; "DEVICEIDTYPE"="android"; "DEVICELANGUAGE"="CN"; "PRODUCT"="todo_pc"; "APPVERSION"="2.0.0"; "SESSIONID"=$t }
-$body = '{"todo_id":"TODO_ID","is_finish":1}'
+$body = '{"uuid":"UUID","is_finish":"1"}'
 Invoke-RestMethod -Uri "https://todo.kairusi.com/index.php/todo/commit_finish" -Method POST -Headers $headers -Body $body
 ```
 
 ### 响应处理
 
-返回 `code == 1` 表示成功。
+返回 `res == 200` 表示成功。
 
 ---
 
